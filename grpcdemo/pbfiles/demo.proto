@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package="grpcdemo/protos";
+
+message DemoRequst {
+    string name = 1;
+}
+
+message DemoResponse {
+    string name = 1;
+}
+
+//工作模式
+service DemoService {
+    rpc GetDemo (DemoRequst) returns (DemoResponse);
+    rpc GetCStream (stream DemoRequst) returns (DemoResponse);
+    rpc GetSStream (DemoRequst) returns (stream DemoResponse);
+    rpc GetBiStream (stream DemoRequst) returns (stream DemoResponse);
+}
