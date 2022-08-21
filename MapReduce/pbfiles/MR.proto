@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "mapreduce/protos";
+
+//定义发送消息
+message MrRequest {
+    bytes data = 1;
+}
+
+//定义接收消息
+message MrResponse {
+    bytes data = 1;
+}
+
+service MrService {
+    //定义双端流
+    rpc GetSStream(MrRequest) returns (stream MrResponse);
+    rpc GetBiStream(stream MrRequest) returns (stream MrResponse);
+}
