@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	readfile "mapreduce/common"
 	"mapreduce/protos"
@@ -15,7 +17,7 @@ type MrService struct {
 	protos.UnimplementedMrServiceServer
 }
 
-const filename = "../file.txt"
+const filename = "../file1.txt"
 
 func (m *MrService) GetSStream(req *protos.MrRequest, stream protos.MrService_GetSStreamServer) error {
 	buff, err := readfile.Read_file(filename, chunksize)
@@ -33,6 +35,38 @@ func (m *MrService) GetSStream(req *protos.MrRequest, stream protos.MrService_Ge
 	return nil
 }
 
+func (m *MrService) GetBiStream(stream protos.MrService_GetBiStreamServer) error {
+	buff, err := readfile.Read_file(filename, chunksize)
+	if err != nil {
+		log.Fatal("读取文件失败: ", err)
+	}
+	n := len(buff)
+	mapTask := 0
+	for {
+		res, err := stream.Recv()
+		if err != nil {
+			return nil
+		}
+		fmt.Println("服务端收到客户端消息") // 这个就是一个result值
+		filename := readfile.ReduceName(mapTask)
+		ioutil.WriteFile(filename, res.Data, 0666)
+		mapTask++
+		for i := 0; i < n; i++ {
+			rsp := &protos.MrResponse{Data: buff[i]}
+			err = stream.Send(rsp)
+			if err != nil {
+				return nil
+			}
+		}
+
+		/* rsp := &protos.MrResponse{Data: buff[i]}
+		err = stream.Send(rsp)
+		if err != nil {
+			return nil
+		} */
+	}
+}
+
 func main() {
 	rpcs := grpc.NewServer()
 	protos.RegisterMrServiceServer(rpcs, &MrService{})
@@ -41,5 +75,6 @@ func main() {
 		panic(err)
 	}
 	rpcs.Serve(listen)
+
 	defer listen.Close()
 }
