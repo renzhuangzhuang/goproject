@@ -37,6 +37,10 @@ func ReduceName_Json(mapTask int) string {
 	return "mrclient." + "-" + strconv.Itoa(mapTask) + ".json"
 }
 
+func ReduceName_res(mapTask int) string {
+	return "result" + strconv.Itoa(mapTask) + ".txt"
+}
+
 func Task_n(name string, chunksize int) int {
 	fi, err := os.Stat(name)
 	if err != nil {
